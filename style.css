@@ -620,9 +620,10 @@ footer > p{ color:#cfc7bd; margin-bottom:20px; }
 .chat-box{
   display:none;
   position:fixed;
-  left:26px; bottom:90px;
+  left:26px; bottom:110px;
   width:320px;
   max-width:88vw;
+  max-height:70vh;
   background:var(--white);
   border-radius:var(--radius);
   overflow:hidden;
