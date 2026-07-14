@@ -337,3 +337,4 @@ if (chatForm) {
 
 /* ---------------- WELCOME LOG ---------------- */
 console.log("✅ BiharVerse loaded successfully");
+});
