@@ -281,74 +281,59 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ---------------- AI CHAT (rule-based FAQ bot) ---------------- */
-  const chatBtn = document.getElementById("chatBtn");
-  const chatBox = document.getElementById("chatBox");
-  const closeChat = document.getElementById("closeChat");
-  const chatForm = document.getElementById("chatForm");
-  const chatInput = document.getElementById("chatInput");
-  const chatBody = document.getElementById("chatBody");
+const chatBtn = document.getElementById("chatBtn");
+const chatBox = document.getElementById("chatBox");
+const closeChat = document.getElementById("closeChat");
+const chatForm = document.getElementById("chatForm");
+const chatInput = document.getElementById("chatInput");
+const chatBody = document.getElementById("chatBody");
 
-  if (chatBtn && chatBox) {
-    chatBtn.addEventListener("click", () => chatBox.classList.toggle("open"));
-  }
-  if (closeChat && chatBox) {
-    closeChat.addEventListener("click", () => chatBox.classList.remove("open"));
-  }
+if (chatBtn && chatBox) {
+  chatBtn.addEventListener("click", () => chatBox.classList.toggle("open"));
+}
+if (closeChat && chatBox) {
+  closeChat.addEventListener("click", () => chatBox.classList.remove("open"));
+}
 
-  const faq = [
-  { keys: ["capital"], reply: "The capital of Bihar is Patna." },
-  { keys: ["food", "eat", "dish"], reply: "Try Litti Chokha, Thekua, Khaja and Champaran Meat — all Bihar favourites!" },
-  { keys: ["festival"], reply: "Chhath Puja is Bihar's biggest festival, dedicated to the Sun God." },
-  { keys: ["buddha", "enlightenment"], reply: "Lord Buddha attained enlightenment at Bodh Gaya." },
-  { keys: ["nalanda"], reply: "Nalanda is home to one of the world's oldest residential universities." },
-  { keys: ["place", "visit", "tourist"], reply: "Top places to visit: Bodh Gaya, Nalanda, Rajgir, Vaishali and the Golghar in Patna." },
-  { keys: ["population"], reply: "Bihar's population is over 130 million people." },
-  { keys: ["district"], reply: "Bihar has 38 districts." },
-  { keys: ["history"], reply: "Bihar was the seat of ancient empires like Magadha, Maurya, and Gupta dynasties." },
-  { keys: ["rajgir"], reply: "Rajgir was the ancient capital of Magadha and has hot springs and Buddhist sites." },
-  { keys: ["vaishali"], reply: "Vaishali is known as the birthplace of Lord Mahavira and one of the world's earliest republics." },
-  { keys: ["famous person", "famous people", "leader", "freedom fighter"], reply: "Bihar has produced leaders like Dr. Rajendra Prasad (India's first President) and Jayaprakash Narayan." },
-  { keys: ["rajendra prasad"], reply: "Dr. Rajendra Prasad, India's first President, was from Bihar." },
-  { keys: ["cricket", "sports", "player"], reply: "Bihar's sports scene is growing, with cricket and kabaddi being very popular." },
-  { keys: ["weather", "climate", "temperature"], reply: "Bihar has a humid subtropical climate — hot summers, monsoon rains, and mild winters." },
-  { keys: ["language", "speak"], reply: "The main languages spoken in Bihar are Hindi, Bhojpuri, Maithili, and Magahi." },
-  { keys: ["transport", "travel", "train", "bus"], reply: "Patna Junction is a major railway hub; Bihar is well connected by trains, buses, and Patna Airport." },
-  { keys: ["river", "ganga"], reply: "The Ganga river flows through Bihar and is central to its culture and agriculture." },
-  { keys: ["chief minister", "cm"], reply: "You can check the latest Chief Minister of Bihar on the official Bihar government website." },
-  { keys: ["patna"], reply: "Patna is the capital and largest city of Bihar, known for Golghar, Patna Sahib, and Gandhi Maidan." },
-  { keys: ["gaya"], reply: "Gaya is a major pilgrimage city, home to Bodh Gaya and Vishnupad Temple." },
-  { keys: ["madhubani", "art", "painting"], reply: "Madhubani painting is a traditional folk art form originating from Bihar." },
-  { keys: ["dance", "music", "culture"], reply: "Bihar's culture includes folk dances like Jat-Jatin and music forms like Bhojpuri and Maithili songs." },
-  { keys: ["university", "college", "education"], reply: "Bihar is home to Nalanda University, Patna University, and IIT Patna." }, 
-  ];
+const WORKER_URL = "https://bihar-chatbot.kumarmalhotra299.workers.dev";
 
-  function botReply(message) {
-    const lower = message.toLowerCase();
-    const match = faq.find(item => item.keys.some(k => lower.includes(k)));
-    return match ? match.reply : "I'm not sure about that yet — try asking about Bihar's capital, food, festivals or tourist places!";
-  }
+function addMessage(text, className) {
+  if (!chatBody) return;
+  const p = document.createElement("p");
+  p.className = className;
+  p.textContent = text;
+  chatBody.appendChild(p);
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
 
-  function addMessage(text, className) {
-    if (!chatBody) return;
-    const p = document.createElement("p");
-    p.className = className;
-    p.textContent = text;
-    chatBody.appendChild(p);
-    chatBody.scrollTop = chatBody.scrollHeight;
-  }
-
-  if (chatForm) {
-    chatForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const value = chatInput.value.trim();
-      if (!value) return;
-      addMessage(value, "user-msg");
-      chatInput.value = "";
-      setTimeout(() => addMessage(botReply(value), "bot-msg"), 400);
+async function getAIReply(message) {
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message }),
     });
+    const data = await res.json();
+    return data.reply || "Sorry, I couldn't understand that.";
+  } catch (err) {
+    return "Connection error — please try again in a moment.";
   }
+}
 
-  /* ---------------- WELCOME LOG ---------------- */
-  console.log("✅ BiharVerse loaded successfully");
+if (chatForm) {
+  chatForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const value = chatInput.value.trim();
+    if (!value) return;
+    addMessage(value, "user-msg");
+    chatInput.value = "";
+    addMessage("Typing...", "bot-msg typing");
+    const reply = await getAIReply(value);
+    const typingMsg = document.querySelector(".typing");
+    if (typingMsg) typingMsg.remove();
+    addMessage(reply, "bot-msg");
+  });
+}
 
-});
+/* ---------------- WELCOME LOG ---------------- */
+console.log("✅ BiharVerse loaded successfully");
